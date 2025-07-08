@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astrolite Dashboard Layout</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #d2e98c, #dbf4b4); /* Applied gradient to the entire page */
+            display: flex;
+            padding-left: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .left-column-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Make this column take full height of the body */
+            flex-shrink: 0;
+            overflow: hidden; /* Ensures sidebar's scrollbar stays within bounds */
+        }
+
+        .header-above-sidebar {
+            padding: 8px 5px;
+            width: 155px; /* Sidebar width */
+            box-sizing: border-box;
+            display: flex; /* Use flexbox to center the image */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            height: 70px; /* Give it a fixed height for the logo area */
+        }
+
+        .astrolite-logo {
+            width: 300px; /* Adjust max-width to fit within 120px container */
+            height: 80px; /* Maintain aspect ratio */
+            display: block;
+        }
+
+        .sidebar {
+            width: 130px; /* User's provided width */
+            background: linear-gradient(to bottom, #d2e98c, #809858); /* Lighter background for sidebar content */
+            color: #333;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Allows sidebar to take remaining height within left-column-wrapper */
+            border-radius: 15px; /* User's provided border-radius */
+            margin-left: 5px;
+            margin-top: 8px; /* User's provided margin */
+            margin-bottom: 5px;
+            align-items: center;
+            overflow-y: scroll; /* User's provided scroll */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adding shadow here to match the pill-shape */
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        .menu-item {
+            margin-bottom: 4px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .menu-item a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px 5px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; /* Added box-shadow to transition */
+            border-radius: 5px;
+            margin: 0 auto;
+            width: fit-content;
+        }
+
+        .menu-item a:hover {
+            background-color: #e0e0e0;
+            color: #000;
+            /* Removed any general inset box-shadow here */
+        }
+
+        /* Specific style for the active dashboard link with inset shadow */
+        .menu-item a.active-dashboard {
+            background-color: #e0e0e0; /* Match hover background for consistency */
+            color: #000;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Inset shadow specifically for the active dashboard */
+        }
+
+        .menu-item img {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 3px;
+            filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+
+        .menu-item span {
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+
+        .sidebar-footer {
+            padding: 10px 10px;
+            text-align: center;
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .logout-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: transparent;
+            color: #333;
+            padding: 8px 5px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin: 0 auto;
+            width: fit-content;
+            max-width: 80px;
+            font-size: 1.1em;
+        }
+
+        .logout-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .logout-btn i {
+            font-size: 2em;
+            margin-bottom: 3px;
+            margin-right: 0;
+            color: #333;
+        }
+
+        .logout-btn span {
+            color: red;
+            font-size: 0.8em;
+        }
+
+        /* --- Styles for the main content area and its header --- */
+        .main-content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0px 20px;
+            margin-left: 20px;
+            padding-bottom: 20px;
+            position: relative;
+        }
+
+        .main-content-area::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 48%;
+            bottom: 5%;
+            transform: translateY(-40%);
+            height: 82%;
+            width: 2px;
+            background-color: black;
+        }
+
+        .main-dashboard-header {
+            background: linear-gradient(to bottom, #b6cf6c, #a6c772);
+            padding: 10px 15px;
+            margin-top: 8px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* This is an OUTER shadow for the main header */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .greeting-section {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .greeting-section .welcome-text {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: black;
+            margin-bottom: 2px;
+        }
+
+        .greeting-section .info-text {
+            font-size: 0.85em;
+            color: #646464;
+        }
+
+        .greeting-section .user-name {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input-wrapper input {
+            padding: 8px 12px;
+            padding-right: 35px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9em;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input-wrapper input:focus {
+            border-color: #a4e667;
+        }
+
+        .search-inside-icon {
+            position: absolute;
+            right: 10px;
+            color: black;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+
+        .header-actions .icon-button {
+            font-size: 1.3em;
+            color: black;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .user-profile:hover {
+            background-color: #e0e0e0;
+        }
+
+        .user-profile .profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #ccc;
+            flex-shrink: 0;
+        }
+
+        .user-profile .user-name {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .user-profile .dropdown-icon {
+            font-size: 1em;
+            color: #555;
+        }
+
+        /* NEW: Styles for the overall content wrapper */
+        .all-content-wrapper {
+            height: 500px;
+            padding: 20px;
+            border-radius: 8px;
+            margin-left: -20px;
+            margin-top: 0px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+
+        /* Styles for the summary card */
+        .verification-summary-card {
+            background: linear-gradient(to left top, #ddeba3, #bfd49a);
+            padding: 20px;
+            width:102%;
+            border-radius: 8px;
+            border: 1px solid;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        /* New line on the far left of the entire card */
+        .verification-summary-card::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 2px;
+            background-color: #696565;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 15px;
+            position: relative;
+            text-align: center;
+            min-width: 100px;
+            box-sizing: border-box;
+        }
+
+        /* Existing separation line between items (updated for exact middle and increased height) */
+        .summary-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 90%;
+            width: 2px;
+            background-color: #696565;
+        }
+
+        .summary-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .summary-item .label {
+            font-size: 0.8em;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        /* NEW CHART CSS */
+        .chart-section {
+            display: flex;
+            flex-direction: row; /* Added explicit flex-direction */
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            width:102%;
+        }
+
+        .chart-card {
+            background: linear-gradient(to bottom right, #e5f2a5, #b0c964);
+            border-radius: 16px;
+            padding: 20px 25px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            flex: 3;
+            width: 500px;
+            height: 320px;
+        }
+
+        .chart-card .card-header-content { /* New class for flex properties inside chart-card header */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-card .title-text { /* Styles for h1 element */
+            font-size: 1.5rem; /* text-2xl from Tailwind */
+            font-weight: bold; /* font-bold from Tailwind */
+            color: #2b2b2b; /* text-gray-800 from Tailwind */
+        }
+
+        .chart-card .dropdown-group { /* Styles for the div containing ul and select */
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-card .monthly-cases-list { /* Styles for ul */
+            font-weight: bold;
+        }
+
+        .chart-card .chart-select { /* Styles for select element */
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #f5fcd2;
+            font-size: 14px;
+        }
+
+        .chart-wrapper {
+            width: 100%;
+            height: 200px;
+            position: relative;
+        }
+
+        #monthlyChart { /* Specific styling for the canvas */
+            margin-top: 30px;
+        }
+
+        /* Donut Chart specific styles */
+        .donut-chart-card {
+            width: 350px;
+            height: 315px;
+            background-color: rgba(255, 255, 255, 0.2); /* bg-white bg-opacity-20 */
+            backdrop-filter: blur(16px); /* backdrop-filter backdrop-blur-lg */
+            border-radius: 1rem; /* rounded-2xl */
+            padding: 1rem; /* p-8 */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-xl */
+            max-width: 28rem; /* max-w-md, equivalent to w-120 in tailwind config */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* border border-white border-opacity-30 */
+            display: flex; /* flex */
+            flex-direction: column; /* flex-col */
+            justify-content: space-between; /* justify-between, to push header and legend apart */
+        }
+
+        .donut-chart-card .card-header-flex { /* flex justify-between items-center mb-6 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .donut-chart-card .title-text-donut { /* text-2xl font-bold text-gray-800 */
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2b2b2b; /* equivalent to text-gray-800 */
+        }
+
+        .donut-chart-card .icon-button-tailwind { /* text-gray-600 focus:outline-none */
+            color: #4b5563; /* equivalent to text-gray-600 */
+            outline: none;
+        }
+
+        .donut-chart-card .svg-container { /* flex items-center justify-center mb-8 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-chart-card .svg-chart { /* w-64 h-64 */
+            width: 13rem; /* 256px */
+            height: 13rem; /* 256px */
+        }
+
+        .donut-chart-card .legend-flex { /* flex justify-around text-gray-700 text-sm font-semibold */
+            display: flex;
+            justify-content: space-around;
+            color: #374151; /* text-gray-700 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 20px; /* added as it was inline */
+        }
+
+        .donut-chart-card .legend-item { /* flex items-center */
+            display: flex;
+            align-items: center;
+        }
+
+        .donut-chart-card .legend-color-box { /* w-3 h-3 bg-[#color] rounded-full mr-2 */
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 9999px; /* rounded-full */
+            margin-right: 0.5rem;
+        }
+
+        /* Specific colors for legend boxes */
+        .bg-approved { background-color: #64A85D; }
+        .bg-pending { background-color: #F9891A; }
+        .bg-rejected { background-color: #A64B4B; }
+
+
+        /* Table styles for Recents card */
+        .recents-card {
+            background: linear-gradient(#eaf3d2, #c3ed7f);
+            padding: 10px;
+            width:102%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex-basis: 100%;
+        }
+
+        .recents-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .recents-table th,
+        .recents-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .recents-table th {
+            background: linear-gradient(to right, #d3dcad, #cce4a2);
+            color: #555;
+            font-weight: normal;
+        }
+
+        .recents-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .recents-table .status-accepted {
+            background-color: #e6ffe6;
+            color: #28a745;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        /* Style for column headers with icons/text */
+        .recents-table th i {
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="left-column-wrapper">
+        <div class="header-above-sidebar">
+            <img src="image.png" alt="Astrolite Logo" class="astrolite-logo">
+        </div>
+        <div class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="#" class="active-dashboard"> <img src="https://img.icons8.com/?size=100&id=92zOGOmxGkWj&format=png&color=000000" alt="Dashboard Icon">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#">
+                        <img src="https://img.icons8.com/?size=100&id=89394&format=png&color=000000" alt="History Icon">
+                        <span>History</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#">
+                        <img src="https://img.icons8.com/?size=100&id=Ib9FADThtmSf&format=png&color=000000" alt="Profile Icon">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#">
+                        <img src="https://img.icons8.com/?size=100&id=9SPgCX6EQMCK&format=png&color=000000" alt="Settings Icon">
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#">
+                        <img src="https://img.icons8.com/?size=100&id=1U7oiG2m15fO&format=png&color=000000" alt="Blocked Cases Icon">
+                        <span>Blocked Cases</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#">
+                        <img src="https://img.icons8.com/?size=100&id=AqxR8HVzKNDb&format=png&color=000000" alt="Help Icon">
+                        <span>Help Centre</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn">
+                    <i class="ri-logout-box-r-line"></i>
+                    <span>Log out</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content-area">
+        <div class="main-dashboard-header">
+            <div class="greeting-section">
+                <span class="welcome-text">Welcome back, Saikrupan</span>
+                <span class="info-text">Here is the information about all Documents</span>
+            </div>
+            <div class="header-actions">
+                <div class="search-input-wrapper">
+                    <input type="text" placeholder="Search..." class="search-input">
+                    <i class="ri-search-line search-inside-icon"></i>
+                </div>
+                <i class="ri-notification-3-line icon-button"></i>
+                <div class="user-profile">
+                    <img src="https://www.shutterstock.com/image-photo/head-shot-portrait-close-smiling-600nw-1714666150.jpg" alt="User Profile" class="profile-pic">
+                    <span class="user-name">Sai Krupan</span>
+                    <i class="ri-arrow-down-s-line dropdown-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="all-content-wrapper">
+            <div class="verification-summary-card">
+                <div class="summary-item">
+                    <div class="value">550</div>
+                    <div class="label">Total Verifications</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">420</div>
+                    <div class="label">Total Approval</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">97</div>
+                    <div class="label">Pending Cases</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">33</div>
+                    <div class="label">Rejected Cases</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-card">
+                    <div class="card-header-content">
+                        <h1 class="title-text">Monthly Analytics</h1>
+                        <div class="dropdown-group">
+                            <ul class="monthly-cases-list">
+                                <li>Monthly cases</li>
+                            </ul>
+                            <select class="chart-select">
+                                <option>Monthly</option>
+                                <option>Quarterly</option>
+                                <option>Annually</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="donut-chart-card">
+                    <div class="card-header-flex">
+                        <h1 class="title-text-donut">Status Overview</h1>
+                        <button class="icon-button-tailwind">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                                <path d="M2 10a2 2 0 114 0 2 2 0 01-4 0zM14 10a2 2 0 114 0 2 2 0 01-4 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="svg-container">
+                        <svg class="svg-chart" viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="80" stroke="#E0E0E0" stroke-width="12" fill="none"></circle>
+                            <circle cx="100" cy="100" r="60" stroke="#E0E0E0" stroke-width="12" fill="none"></circle>
+                            <circle cx="100" cy="100" r="40" stroke="#E0E0E0" stroke-width="12" fill="none"></circle>
+
+                            <circle id="approved-ring" class="chart-circle" cx="100" cy="100" r="80" stroke="#64A85D" stroke-width="12" fill="none"></circle>
+                            <circle id="pending-ring" class="chart-circle" cx="100" cy="100" r="60" stroke="#F9891A" stroke-width="12" fill="none"></circle>
+                            <circle id="rejected-ring" class="chart-circle" cx="100" cy="100" r="40" stroke="#A64B4B" stroke-width="12" fill="none"></circle>
+                        </svg>
+                    </div>
+
+                    <div class="legend-flex">
+                        <div class="legend-item">
+                            <span class="legend-color-box bg-approved"></span>
+                            <span>Approved</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color-box bg-pending"></span>
+                            <span>Pending</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color-box bg-rejected"></span>
+                            <span>Rejected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="recents-card">
+                <div class="card-header">
+                    <h3>Recents</h3>
+                    <div class="dropdown-toggle">
+                        Monthly <i class="ri-arrow-down-s-line"></i>
+                    </div>
+                </div>
+                <table class="recents-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>ID <i class="ri-arrow-down-s-line"></i></th>
+                            <th>Date</th>
+                            <th>Customer Name <i class="ri-arrow-down-s-line"></i></th>
+                            <th>Location</th>
+                            <th>Years of Experience <i class="ri-arrow-down-s-line"></i></th>
+                            <th>Status <i class="ri-arrow-down-s-line"></i></th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>#123594</td>
+                            <td>May 29, 2025</td>
+                            <td>Robini-food</td>
+                            <td>Hyderabad</td>
+                            <td>3</td>
+                            <td><span class="status-accepted">Accepted</span></td>
+                            <td><i class="ri-more-line options-menu"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Line Chart
+        const ctx1 = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Monthly Cases',
+                    data: [5, 15, 60, 45, 40, 42, 70],
+                    fill: false,
+                    borderColor: '#2b2b2b',
+                    borderWidth: 2.5,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#2b2b2b',
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#bbb' }
+                    }
+                }
+            }
+        });
+
+        // Donut Chart
+        document.addEventListener('DOMContentLoaded', () => {
+            // Data for the pie chart segments
+            const data = [
+                { id: 'approved-ring', percentage: 78, color: '#64A85D', radius: 80 }, // Outer ring
+                { id: 'pending-ring', percentage: 42, color: '#F9891A', radius: 60 }, // Middle ring
+                { id: 'rejected-ring', percentage: 28, color: '#A64B4B', radius: 40 }  // Inner ring
+            ];
+
+            // Function to update the circle's stroke properties
+            function updateCircleProgress(circleElement, percentage, radius) {
+                const circumference = 2 * Math.PI * radius;
+                const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+                circleElement.style.strokeDasharray = `${circumference} ${circumference}`;
+                circleElement.style.strokeDashoffset = circumference; // Starts fully hidden
+                circleElement.style.transition = 'stroke-dashoffset 1.5s ease-out'; // Add transition for animation
+
+                // Trigger reflow to ensure transition plays
+                void circleElement.offsetWidth;
+
+                // Set the final stroke-dashoffset after a slight delay for animation
+                circleElement.style.strokeDashoffset = strokeDashoffset;
+            }
+
+            // Apply the progress to each circle
+            data.forEach(item => {
+                const circle = document.getElementById(item.id);
+                if (circle) {
+                    updateCircleProgress(circle, item.percentage, item.radius);
+                } else {
+                    console.error(`Circle element with ID "${item.id}" not found.`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
